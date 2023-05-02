@@ -1,0 +1,16 @@
+PH:=function(L,n)
+	local i, U, ph, B;
+
+U:=MatrixAlgebra(Rationals(),n);
+ph:=[];
+for i in [1..#L] do
+	ph[i]:=1/(#L[i])*(&+[U!x:x in L[i]]);
+end for;
+
+B:=<BasisMatrix(PureLattice(Lattice(Transpose(x)))): x in ph>;
+
+print "\n";
+print "En sus variables tiene ph y Base \n";
+
+return ph,B;
+end function;
