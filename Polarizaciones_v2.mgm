@@ -1,0 +1,89 @@
+Polarizaciones:=function(L)
+	local n,N,n2,U,LU,G,tb,A,rtb,dd,co,rho,e,c,b,UU,buu,r,ew,ewt,x,i,j,Lat,ddd,blat,J,P,M,r2,pol, dds,gr,schur, dimB,form,Q;
+
+n:=NumberOfRows(L[1]);
+N:=#L;
+U:=GeneralLinearGroup(n,Rationals());
+LU:=[U!L[i]:i in [1..N]];
+G:=sub<U|LU>;
+tb:=CharacterTable(G);
+A:=GroupAlgebra(Rationals(),G: Rep:="Vector");
+rtb:=[];
+rtb[1]:=tb[1];
+dd:=[];
+dd[1]:=1;
+co:=2;
+
+for i in [1..#tb] do
+	if tb[i] notin &cat[GaloisOrbit(x):x in rtb] then
+		rtb[#rtb+1]:=tb[i];
+		dd[co]:=i;
+		co:=co+1;
+	end if;
+end for;
+
+rho:=[&+GaloisOrbit(x):x in rtb];
+e:=[&+[elt<A|(rtb[i][1]/#G)*rho[i](x^-1),x>:x in G] : i in [1..#rtb]];
+c:=[Coefficients(x):x in e];
+b:=Basis(A);
+UU:=MatrixAlgebra(Rationals(),n);
+buu:=[G!x: x in b];
+ew:=[&+[UU!(c[j][i]*UU!buu[i]):i in [1.. #G]]:j in [1..#rtb]];
+r:=[Rank(x):x in ew];
+ewt:=[Transpose(x):x in ew];
+Lat:=[];
+j:=1;
+ddd:=[];
+for i in [1..#r] do
+	if r[i] ne 0 then
+		Lat[j]:=PureLattice(Lattice(ewt[i]));
+		ddd[j]:=i;
+		j:=j+1;
+	end if;
+end for;
+
+blat:=<BasisMatrix(x): x in Lat>;
+
+n2:=Floor(n/2);
+
+
+J:=VerticalJoin(HorizontalJoin(ZeroMatrix(Integers(),n2,n2),IdentityMatrix(Integers(),n2)),HorizontalJoin(-IdentityMatrix(Integers(),n2),ZeroMatrix(Integers(),n2,n2)));
+
+P:=<blat[i]*J*Transpose(blat[i]):i in [1..#blat]>;
+
+M:=<FrobeniusFormAlternating(MatrixAlgebra(Integers(),r[ddd[i]])!P[i]):i in [1..#P]>;
+
+
+r2:=[Floor(r[x]/2):x in ddd];
+
+pol:=<[M[i][j][r2[i]+j]:j in [1..r2[i]]]:i in [1..#M]>;
+
+dds:=[dd[x]:x in ddd];
+gr:=[rtb[x][1]:x in ddd];
+schur:=[SchurIndex(rtb[x]):x in ddd];
+dimB:=[r2[i]*schur[i]/gr[i]:i in [1..#r2]];
+
+form:=recformat<NFactGen:RngIntElt,dimA:SeqEnum,PolA:Tup,ReticuladosA:Tup,dimB:SeqEnum,Tb:SeqEnum,ReprCorr:SeqEnum,GrReprCorr:SeqEnum,Idemp:SeqEnum,IdxSchurRepCorr:SeqEnum,Int:Tup, Group:GrpMat>;
+
+
+print "\n";
+print "En su variable quedo la siguiente informacion:\n";
+print "NFactGen:Cantidad de A's en Lange-Recillas, \n";
+print "dimA:Dimensiones de las A ,\n";
+print "PolA:Polarizaciones,\n";
+print "ReticuladosA:Subreticulados correspondientes a cadaA en terminos de la base simplectica de la Variedad,\n";
+
+print "dimB:Dimensiones de las B,\n";
+print "Tb:Tabla de caracteres de G,\n";
+print "ReprCorr:Indice en la Tabla de Caracteres de la representacion correspondiente a cada A,\n";
+print "GrReprCorr:Grados de las representaciones correspondientes,\n";
+print "Idemp:Idemp.centrales en los EndA (aterrizados por la simplectica),\n";
+print "IdxSchurRepCorr:Indice de Schur de cada representacion que juega, \n";
+print "Int:Matrix de interseccion de base original, \n";
+print "ChBasis:Matriz cambio de base a la simplectica, \n";
+print "Group:Grupo generado por las matrices dadas, \n";
+print "\n";
+
+return rec<form|NFactGen:=co-1,dimA:=r2,PolA:=pol,ReticuladosA:=blat,dimB:=dimB,Tb:=tb,ReprCorr:=dds,GrReprCorr:=gr,Idemp:=ew,IdxSchurRepCorr:=schur,Int:=P, Group:=G>;
+
+end function;
